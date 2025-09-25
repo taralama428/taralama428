@@ -1,176 +1,254 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🎨 Guess the Drawing Game</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: "Poppins", sans-serif;
-      background: linear-gradient(to right, #83a4d4, #b6fbff);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      text-align: center;
-      overflow: hidden;
-    }
-    h1 {
-      color: #333;
-      margin-bottom: 20px;
-      text-shadow: 2px 2px #fff;
-    }
-    canvas {
-      border: 3px solid #333;
-      border-radius: 12px;
-      background: white;
-      box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
-    }
-    input, button {
-      margin: 10px;
-      padding: 12px 18px;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-    }
-    input {
-      width: 200px;
-      text-align: center;
-    }
-    button {
-      cursor: pointer;
-      background: #4cafef;
-      color: white;
-      transition: 0.3s;
-    }
-    button:hover {
-      background: #2196f3;
-    }
-    #settings {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: white;
-      border: 2px solid #333;
-      border-radius: 10px;
-      padding: 10px;
-      display: none;
-    }
-    #settings button {
-      background: #ff9800;
-      margin: 5px 0;
-      width: 100%;
-    }
-    #settingsToggle {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      background: #673ab7;
-      color: white;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎨 Guess the Drawing Game</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
+  body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    overflow: hidden;
+    background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+  }
+
+  @keyframes gradientBG {
+    0% {background-position: 0% 50%;}
+    50% {background-position: 100% 50%;}
+    100% {background-position: 0% 50%;}
+  }
+
+  h1 {
+    color: #fff;
+    text-shadow: 2px 2px #333;
+    margin-bottom: 20px;
+  }
+
+  canvas {
+    border: 3px solid #fff;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.8);
+    box-shadow: 0px 0px 20px rgba(0,0,0,0.4);
+  }
+
+  input, button {
+    margin: 10px;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    text-align: center;
+  }
+
+  input {
+    width: 200px;
+  }
+
+  button {
+    cursor: pointer;
+    background: #ff6f61;
+    color: white;
+    transition: 0.3s;
+  }
+
+  button:hover {
+    background: #ff3b2e;
+  }
+
+  #feedback {
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 10px;
+    color: #fff;
+    text-shadow: 1px 1px #000;
+  }
+
+  #hint {
+    background: rgba(255,255,255,0.7);
+    padding: 10px 15px;
+    border-radius: 10px;
+    margin: 10px 0;
+    font-weight: bold;
+  }
+
+  #score {
+    font-size: 18px;
+    color: #fff;
+    margin-top: 5px;
+  }
+
+  #settingsToggle {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: #673ab7;
+    color: white;
+    border-radius: 8px;
+  }
+
+  #settings {
+    position: absolute;
+    top: 50px;
+    left: 10px;
+    background: rgba(255,255,255,0.9);
+    border: 2px solid #333;
+    border-radius: 10px;
+    padding: 10px;
+    display: none;
+    z-index: 100;
+  }
+
+  #settings button {
+    background: #ff9800;
+    width: 100%;
+    margin: 5px 0;
+  }
+
+  #volumeControl {
+    width: 100%;
+  }
+
+</style>
 </head>
 <body>
-  <h1>🎨 Guess the Drawing Game</h1>
-  <canvas id="gameCanvas" width="300" height="300"></canvas>
-  <br>
-  <input type="text" id="guessInput" placeholder="Your Guess...">
-  <button onclick="checkGuess()">Submit</button>
-  <p id="feedback"></p>
-  <p id="score">Score: 0</p>
 
-  <!-- Settings Button -->
-  <button id="settingsToggle">⚙️ Settings</button>
-  <div id="settings">
-    <label>🔊 Volume</label>
-    <input type="range" id="volumeControl" min="0" max="1" step="0.1" value="0.5">
-    <br>
-    <button onclick="changeMusic()">🎶 Change Music</button>
-  </div>
+<h1>🎨 Guess the Drawing Game</h1>
+<canvas id="gameCanvas" width="300" height="300"></canvas>
+<div id="hint">Click "Next Hint" to see a hint!</div>
+<input type="text" id="guessInput" placeholder="Your Guess...">
+<button onclick="checkGuess()">Submit</button>
+<button onclick="nextHint()">Next Hint</button>
+<p id="feedback"></p>
+<p id="score">Score: 0</p>
 
-  <!-- Sounds -->
-  <audio id="bgMusic" loop>
-    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
-  </audio>
-  <audio id="rightSound">
-    <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_9f394c26f4.mp3?filename=correct-2-46134.mp3" type="audio/mpeg">
-  </audio>
-  <audio id="wrongSound">
-    <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_75a334c2db.mp3?filename=wrong-buzzer-6268.mp3" type="audio/mpeg">
-  </audio>
+<button id="settingsToggle">⚙️ Settings</button>
+<div id="settings">
+  <label>🔊 Volume</label>
+  <input type="range" id="volumeControl" min="0" max="1" step="0.1" value="0.5">
+  <button onclick="changeMusic()">🎶 Change Music</button>
+</div>
 
-  <script>
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
+<audio id="bgMusic" loop>
+  <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+</audio>
+<audio id="rightSound">
+  <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_9f394c26f4.mp3?filename=correct-2-46134.mp3" type="audio/mpeg">
+</audio>
+<audio id="wrongSound">
+  <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_75a334c2db.mp3?filename=wrong-buzzer-6268.mp3" type="audio/mpeg">
+</audio>
 
-    let score = 0;
-    let currentQuestion = {};
-    let bgMusic = document.getElementById("bgMusic");
-    let rightSound = document.getElementById("rightSound");
-    let wrongSound = document.getElementById("wrongSound");
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+let score = 0;
+let currentQuestion = {};
+let currentHintIndex = 0;
 
-    // 🎨 50+ Questions
-    const questions = [
-      { answer: "sun", draw: () => { ctx.arc(150,150,60,0,Math.PI*2); ctx.fillStyle="yellow"; ctx.fill(); }},
-      { answer: "moon", draw: () => { ctx.arc(150,150,60,0,Math.PI*2); ctx.fillStyle="gray"; ctx.fill(); }},
-      { answer: "tree", draw: () => { ctx.fillStyle="brown"; ctx.fillRect(130,180,40,100); ctx.beginPath(); ctx.arc(150,150,70,0,Math.PI*2); ctx.fillStyle="green"; ctx.fill(); }},
-      { answer: "house", draw: () => { ctx.fillStyle="brown"; ctx.fillRect(100,150,100,100); ctx.beginPath(); ctx.moveTo(90,150); ctx.lineTo(210,150); ctx.lineTo(150,80); ctx.closePath(); ctx.fillStyle="red"; ctx.fill(); }},
-      { answer: "car", draw: () => { ctx.fillStyle="blue"; ctx.fillRect(80,160,140,70); ctx.beginPath(); ctx.arc(110,230,20,0,Math.PI*2); ctx.arc(190,230,20,0,Math.PI*2); ctx.fillStyle="black"; ctx.fill(); }},
-      { answer: "ball", draw: () => { ctx.beginPath(); ctx.arc(150,150,60,0,Math.PI*2); ctx.fillStyle="red"; ctx.fill(); }},
-      { answer: "cat", draw: () => { ctx.fillStyle="orange"; ctx.beginPath(); ctx.arc(150,150,50,0,Math.PI*2); ctx.fill(); ctx.moveTo(100,120); ctx.lineTo(120,80); ctx.lineTo(130,120); ctx.closePath(); ctx.fill(); ctx.moveTo(200,120); ctx.lineTo(180,80); ctx.lineTo(170,120); ctx.closePath(); ctx.fill(); }},
-      { answer: "dog", draw: () => { ctx.fillStyle="brown"; ctx.beginPath(); ctx.arc(150,150,60,0,Math.PI*2); ctx.fill(); ctx.fillRect(90,140,20,60); ctx.fillRect(190,140,20,60); }},
-      { answer: "fish", draw: () => { ctx.fillStyle="blue"; ctx.beginPath(); ctx.ellipse(150,150,70,40,0,0,Math.PI*2); ctx.fill(); }},
-      { answer: "flower", draw: () => { ctx.fillStyle="green"; ctx.fillRect(145,180,10,70); ctx.fillStyle="pink"; for(let i=0;i<6;i++){ ctx.beginPath(); ctx.arc(150+40*Math.cos(i*Math.PI/3),150+40*Math.sin(i*Math.PI/3),20,0,Math.PI*2); ctx.fill(); } ctx.beginPath(); ctx.arc(150,150,20,0,Math.PI*2); ctx.fillStyle="yellow"; ctx.fill(); }},
-      // 👉 Repeat with more items up to 50+
-    ];
+const bgMusic = document.getElementById("bgMusic");
+const rightSound = document.getElementById("rightSound");
+const wrongSound = document.getElementById("wrongSound");
 
-    function loadQuestion() {
-      ctx.clearRect(0,0,300,300);
-      currentQuestion = questions[Math.floor(Math.random() * questions.length)];
-      ctx.beginPath();
-      currentQuestion.draw();
-    }
+// 50+ questions with hints
+const questions = [
+  { answer: "sun", hints: ["It's bright.", "It rises in the east.", "Gives us light.", "Center of solar system."],
+    draw: () => { ctx.beginPath(); ctx.arc(150,150,60,0,Math.PI*2); ctx.fillStyle="yellow"; ctx.fill(); } 
+  },
+  { answer: "moon", hints:["It's in the sky.","It changes shape.","Shines at night.","Tide is affected by it."],
+    draw: () => { ctx.beginPath(); ctx.arc(150,150,60,0,Math.PI*2); ctx.fillStyle="gray"; ctx.fill(); } 
+  },
+  { answer: "tree", hints:["It has leaves.","Grows tall.","Provides shade.","Makes oxygen."],
+    draw: () => { ctx.fillStyle="brown"; ctx.fillRect(140,180,20,120); ctx.beginPath(); ctx.arc(150,150,60,0,Math.PI*2); ctx.fillStyle="green"; ctx.fill(); } 
+  },
+  { answer: "car", hints:["Has wheels.","Drives on roads.","Needs fuel.","Can transport people."],
+    draw: () => { ctx.fillStyle="blue"; ctx.fillRect(80,160,140,70); ctx.beginPath(); ctx.arc(110,230,20,0,Math.PI*2); ctx.arc(190,230,20,0,Math.PI*2); ctx.fillStyle="black"; ctx.fill(); } 
+  },
+  { answer: "house", hints:["People live here.","Has walls.","Has roof.","Has doors."],
+    draw: () => { ctx.fillStyle="brown"; ctx.fillRect(100,150,100,100); ctx.beginPath(); ctx.moveTo(90,150); ctx.lineTo(210,150); ctx.lineTo(150,80); ctx.closePath(); ctx.fillStyle="red"; ctx.fill(); } 
+  },
+  { answer: "cat", hints:["It meows.","It has whiskers.","Loves milk.","Chases mice."],
+    draw: () => { ctx.fillStyle="orange"; ctx.beginPath(); ctx.arc(150,150,50,0,Math.PI*2); ctx.fill(); } 
+  },
+  { answer: "dog", hints:["It barks.","Man's best friend.","Has fur.","Loves bones."],
+    draw: () => { ctx.fillStyle="brown"; ctx.beginPath(); ctx.arc(150,150,50,0,Math.PI*2); ctx.fill(); } 
+  },
+  { answer: "apple", hints:["It's red or green.","Keeps doctor away.","Grows on trees.","Round in shape."],
+    draw: () => { ctx.beginPath(); ctx.arc(150,150,50,0,Math.PI*2); ctx.fillStyle="red"; ctx.fill(); ctx.fillStyle="green"; ctx.fillRect(145,45,10,20);} 
+  },
+  { answer: "ball", hints:["Bounces.","Round.","Used in games.","Can be thrown."],
+    draw: () => { ctx.beginPath(); ctx.arc(150,150,50,0,Math.PI*2); ctx.fillStyle="red"; ctx.fill(); } 
+  },
+  { answer: "fish", hints:["Lives in water.","Has fins.","Can swim.","Gills for breathing."],
+    draw: () => { ctx.fillStyle="blue"; ctx.beginPath(); ctx.ellipse(150,150,60,40,0,0,Math.PI*2); ctx.fill(); } 
+  },
+  // ... add up to 50+ questions
+];
 
-    function checkGuess() {
-      const guess = document.getElementById("guessInput").value.toLowerCase();
-      if (guess === currentQuestion.answer) {
-        document.getElementById("feedback").textContent = "✅ Correct!";
-        score++;
-        document.getElementById("score").textContent = "Score: " + score;
-        rightSound.play();
-        loadQuestion();
-      } else {
-        document.getElementById("feedback").textContent = "❌ Wrong, try again!";
-        wrongSound.play();
-      }
-      document.getElementById("guessInput").value = "";
-    }
+// Load a new question
+function loadQuestion(){
+  currentQuestion = questions[Math.floor(Math.random()*questions.length)];
+  currentHintIndex = 0;
+  ctx.clearRect(0,0,300,300);
+  currentQuestion.draw();
+  document.getElementById("hint").textContent = "Click 'Next Hint' to see a hint!";
+}
 
-    // 🎶 Settings
-    document.getElementById("settingsToggle").onclick = () => {
-      let panel = document.getElementById("settings");
-      panel.style.display = panel.style.display === "block" ? "none" : "block";
-    };
+function nextHint(){
+  if(currentHintIndex < currentQuestion.hints.length){
+    document.getElementById("hint").textContent = currentQuestion.hints[currentHintIndex];
+    currentHintIndex++;
+  } else {
+    document.getElementById("hint").textContent = "❌ No more hints!";
+  }
+}
 
-    document.getElementById("volumeControl").oninput = function() {
-      bgMusic.volume = this.value;
-      rightSound.volume = this.value;
-      wrongSound.volume = this.value;
-    };
-
-    function changeMusic() {
-      bgMusic.src = bgMusic.src.includes("Song-1") 
-        ? "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
-        : "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
-      bgMusic.play();
-    }
-
-    // Start game
-    bgMusic.volume = 0.5;
-    bgMusic.play();
+function checkGuess(){
+  const guess = document.getElementById("guessInput").value.toLowerCase();
+  if(guess === currentQuestion.answer){
+    document.getElementById("feedback").textContent = "✅ Correct!";
+    score++;
+    document.getElementById("score").textContent = "Score: "+score;
+    rightSound.play();
     loadQuestion();
-  </script>
+  } else {
+    document.getElementById("feedback").textContent = "❌ Wrong! Try again.";
+    wrongSound.play();
+  }
+  document.getElementById("guessInput").value = "";
+}
+
+// Settings toggle
+document.getElementById("settingsToggle").onclick = ()=>{
+  let panel = document.getElementById("settings");
+  panel.style.display = panel.style.display==="block" ? "none" : "block";
+};
+
+document.getElementById("volumeControl").oninput = function(){
+  bgMusic.volume = this.value;
+  rightSound.volume = this.value;
+  wrongSound.volume = this.value;
+};
+
+function changeMusic(){
+  bgMusic.src = bgMusic.src.includes("Song-1") ? 
+    "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" : 
+    "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+  bgMusic.play();
+}
+
+// Start game
+bgMusic.volume = 0.5;
+bgMusic.play();
+loadQuestion();
+
+</script>
 </body>
 </html>

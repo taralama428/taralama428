@@ -3,252 +3,223 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🎨 CGI Guess the Drawing Game</title>
+  <title>🎨 Guess the Drawing Game</title>
   <style>
     body {
-      font-family: 'Poppins', sans-serif;
-      background: radial-gradient(circle at top left, #1a2a6c, #b21f1f, #fdbb2d);
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin: 0;
-      overflow: hidden;
-      color: #fff;
-    }
-
-    /* Floating CGI Orbs */
-    .orb {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(80px);
-      opacity: 0.5;
-      animation: float 12s infinite ease-in-out;
-    }
-    .orb1 { width: 300px; height: 300px; background: #00f2fe; top: 10%; left: 15%; }
-    .orb2 { width: 250px; height: 250px; background: #ff6a00; bottom: 20%; right: 20%; animation-delay: 3s; }
-    .orb3 { width: 200px; height: 200px; background: #66ff99; top: 65%; left: 70%; animation-delay: 6s; }
-
-    @keyframes float {
-      0%, 100% { transform: translateY(0) translateX(0); }
-      50% { transform: translateY(-40px) translateX(30px); }
-    }
-
-    .game-container {
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(15px);
-      padding: 35px;
-      border-radius: 25px;
+      font-family: Arial, sans-serif;
       text-align: center;
-      width: 550px;
-      box-shadow: 0px 10px 40px rgba(0, 255, 200, 0.4);
-      animation: fadeIn 1.2s ease-in-out;
-      z-index: 1;
+      background: linear-gradient(120deg, #0f2027, #203a43, #2c5364);
+      color: #fff;
+      margin: 0;
+      padding: 0;
     }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.9); }
-      to { opacity: 1; transform: scale(1); }
-    }
-
     h1 {
-      font-size: 30px;
-      margin-bottom: 15px;
-      background: linear-gradient(to right, #00f2fe, #4facfe, #38ef7d);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      text-shadow: 0 0 20px rgba(0,255,200,0.5);
+      margin: 20px;
+      color: #00ffcc;
+      text-shadow: 0 0 15px #00ffcc;
     }
-
-    .status-bar {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 20px;
-      font-size: 16px;
-      font-weight: bold;
-      color: #00f2fe;
+    .game-container {
+      margin: 30px auto;
+      width: 90%;
+      max-width: 600px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0, 255, 200, 0.2);
     }
-
-    .hint-box {
-      background: rgba(255, 234, 167, 0.2);
-      padding: 15px;
-      border-radius: 12px;
-      margin: 15px 0;
-      font-size: 18px;
-      font-weight: bold;
-      min-height: 50px;
-      color: #ffeaa7;
-    }
-
     canvas {
-      margin: 15px 0;
-      border-radius: 12px;
-      background: #f1f2f6;
-      box-shadow: 0 0 15px rgba(255,255,255,0.2);
+      border: 3px solid #00ffcc;
+      border-radius: 10px;
+      background: #fff;
+      margin-bottom: 20px;
     }
-
     input {
-      padding: 12px;
-      border-radius: 12px;
-      border: 2px solid #00f2fe;
-      font-size: 16px;
-      width: 80%;
-      margin-top: 10px;
-      outline: none;
-    }
-
-    button {
-      margin-top: 15px;
-      padding: 12px 20px;
-      font-size: 16px;
+      padding: 10px;
+      width: 60%;
+      margin: 10px;
+      border-radius: 8px;
       border: none;
-      border-radius: 12px;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      margin: 10px;
       background: linear-gradient(135deg, #ff512f, #dd2476);
-      color: white;
-      cursor: pointer;
-      transition: 0.3s;
-      margin-right: 5px;
-      box-shadow: 0 0 15px rgba(255,100,150,0.5);
-    }
-
-    button:hover {
-      transform: scale(1.08);
-      box-shadow: 0 0 30px rgba(255,80,150,0.8);
-    }
-
-    .message {
-      margin-top: 20px;
-      font-size: 18px;
+      color: #fff;
       font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    button:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 20px rgba(255, 80, 150, 0.8);
+    }
+    #hint {
+      margin-top: 15px;
+      font-style: italic;
+      color: #ffd700;
     }
 
-    .success { color: #00ffcc; text-shadow: 0 0 10px #00ffcc; }
-    .fail { color: #ff4b5c; text-shadow: 0 0 10px #ff4b5c; }
+    /* Settings Panel */
+    #settingsPanel {
+      display: none;
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 300px;
+      padding: 20px;
+      background: rgba(0,0,0,0.85);
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0,255,200,0.6);
+      z-index: 10;
+    }
+    #settingsPanel h2 {
+      color: #00ffcc;
+      margin-bottom: 15px;
+    }
+    .slider {
+      width: 100%;
+      margin: 10px 0;
+    }
+    .close-btn {
+      margin-top: 15px;
+      background: crimson;
+    }
   </style>
 </head>
 <body>
-  <!-- CGI Orbs -->
-  <div class="orb orb1"></div>
-  <div class="orb orb2"></div>
-  <div class="orb orb3"></div>
-
+  <h1>🎨 Guess the Drawing Game</h1>
   <div class="game-container">
-    <h1>🎨 CGI Guess the Drawing</h1>
-    <div class="status-bar">
-      <div>⭐ Score: <span id="score">0</span></div>
-      <div>⏳ Time: <span id="timer">30</span>s</div>
-      <div>📊 Level: <span id="level">1</span> ∞</div>
-    </div>
-
-    <canvas id="drawingCanvas" width="300" height="200"></canvas>
-    <div class="hint-box" id="hint">Click "Next Hint" to begin...</div>
-
-    <input type="text" id="guessInput" placeholder="Your guess...">
+    <canvas id="drawingCanvas" width="300" height="300"></canvas>
+    <p id="levelText">Level: 1</p>
+    <input type="text" id="answer" placeholder="Your Guess...">
     <br>
-    <button onclick="checkGuess()">Submit Guess</button>
-    <button onclick="nextHint()">Next Hint</button>
-    <button onclick="restartGame()">Restart</button>
-
-    <p class="message" id="message"></p>
+    <button onclick="checkAnswer()">Submit</button>
+    <button onclick="showHint()">Hint</button>
+    <button onclick="toggleSettings()">⚙️ Settings</button>
+    <p id="feedback"></p>
+    <p id="hint"></p>
   </div>
 
-  <audio id="correctSound" src="https://www.fesliyanstudios.com/play-mp3/4387"></audio>
-  <audio id="wrongSound" src="https://www.fesliyanstudios.com/play-mp3/4386"></audio>
+  <!-- Settings Panel -->
+  <div id="settingsPanel">
+    <h2>🎵 Music Settings</h2>
+    <label for="volume">Volume</label>
+    <input type="range" id="volume" class="slider" min="0" max="1" step="0.01" value="0.5">
+    
+    <label for="trackSelect">Background Track</label>
+    <select id="trackSelect">
+      <option value="bg1.mp3">🌿 Calming Track 1</option>
+      <option value="bg2.mp3">🌊 Calming Track 2</option>
+      <option value="bg3.mp3">✨ Calming Track 3</option>
+    </select>
+    <br>
+    <button class="close-btn" onclick="toggleSettings()">Close</button>
+  </div>
 
   <script>
-    const drawings = [
-      { word: "apple", hints: ["It's round.", "It's red or green.", "It grows on trees.", "Keeps the doctor away."], draw: ctx => { ctx.beginPath(); ctx.arc(150,100,50,0,Math.PI*2); ctx.fillStyle="red"; ctx.fill(); ctx.fillStyle="green"; ctx.fillRect(145,45,10,20);} },
-      { word: "car", hints: ["It has wheels.", "It moves fast.", "You drive it.", "It has doors and windows."], draw: ctx => { ctx.fillStyle="blue"; ctx.fillRect(80,100,140,50); ctx.beginPath(); ctx.arc(110,150,20,0,Math.PI*2); ctx.arc(190,150,20,0,Math.PI*2); ctx.fillStyle="black"; ctx.fill(); } },
-      { word: "sun", hints: ["It's round.", "It's very hot.", "It shines in the sky.", "It gives us light."], draw: ctx => { ctx.beginPath(); ctx.arc(150,100,50,0,Math.PI*2); ctx.fillStyle="yellow"; ctx.fill(); } }
+    // Question bank
+    const questions = [
+      {answer: "sun", hint: "It's a bright star in the sky", draw: drawSun},
+      {answer: "tree", hint: "It has roots, trunk and leaves", draw: drawTree},
+      {answer: "house", hint: "People live inside it", draw: drawHouse}
     ];
 
-    let chosen, currentHint, level = 1, score = 0, timeLeft = 30, timerInterval;
+    let currentLevel = 0;
 
-    function startGame() {
-      chosen = drawings[Math.floor(Math.random() * drawings.length)];
-      chosen.hints = shuffle([...chosen.hints]); // shuffle hints every game
-      currentHint = 0;
-      document.getElementById("hint").textContent = "Click 'Next Hint' to begin...";
-      document.getElementById("message").textContent = "";
-      document.getElementById("guessInput").value = "";
-      document.getElementById("level").textContent = level;
-      drawPartial(0);
-      resetTimer();
+    const canvas = document.getElementById("drawingCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // Sounds
+    const correctSound = new Audio("correct.mp3");
+    const wrongSound = new Audio("wrong.mp3");
+
+    let bgMusic = new Audio("bg1.mp3");
+    bgMusic.loop = true;
+    bgMusic.volume = 0.5;
+    bgMusic.play();
+
+    function loadQuestion() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      document.getElementById("feedback").innerText = "";
+      document.getElementById("hint").innerText = "";
+      document.getElementById("levelText").innerText = "Level: " + (currentLevel + 1);
+      questions[currentLevel].draw();
     }
 
-    function shuffle(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
-    }
-
-    function drawPartial(stage) {
-      const ctx = document.getElementById("drawingCanvas").getContext("2d");
-      ctx.clearRect(0,0,300,200);
-      if(stage > 0) chosen.draw(ctx);
-    }
-
-    function nextHint() {
-      if (currentHint < chosen.hints.length) {
-        document.getElementById("hint").textContent = chosen.hints[currentHint];
-        drawPartial(currentHint); 
-        currentHint++;
-      } else {
-        document.getElementById("hint").textContent = "❌ No more hints left!";
-      }
-    }
-
-    function checkGuess() {
-      let guess = document.getElementById("guessInput").value.toLowerCase();
-      let message = document.getElementById("message");
-      let correctSound = document.getElementById("correctSound");
-      let wrongSound = document.getElementById("wrongSound");
-
-      if (guess === chosen.word) {
-        score += 10;
-        message.textContent = "🎉 Correct! It was " + chosen.word.toUpperCase();
-        message.className = "message success";
+    function checkAnswer() {
+      const userAnswer = document.getElementById("answer").value.toLowerCase().trim();
+      if (userAnswer === questions[currentLevel].answer) {
+        document.getElementById("feedback").innerText = "✅ Correct!";
         correctSound.play();
+        currentLevel++;
+        if (currentLevel < questions.length) {
+          setTimeout(loadQuestion, 1000);
+        } else {
+          document.getElementById("feedback").innerText = "🎉 You completed all levels!";
+        }
       } else {
-        score = Math.max(0, score - 5);
-        message.textContent = "❌ Wrong! The correct answer was " + chosen.word.toUpperCase();
-        message.className = "message fail";
+        document.getElementById("feedback").innerText = "❌ Try again!";
         wrongSound.play();
       }
-
-      level++; // unlimited levels
-      updateScore();
-      setTimeout(startGame, 2000);
+      document.getElementById("answer").value = "";
     }
 
-    function updateScore() {
-      document.getElementById("score").textContent = score;
+    function showHint() {
+      document.getElementById("hint").innerText = "💡 Hint: " + questions[currentLevel].hint;
     }
 
-    function resetTimer() {
-      clearInterval(timerInterval);
-      timeLeft = Math.max(10, 30 - Math.floor(level / 5)); 
-      document.getElementById("timer").textContent = timeLeft;
-      timerInterval = setInterval(() => {
-        timeLeft--;
-        document.getElementById("timer").textContent = timeLeft;
-        if (timeLeft <= 0) {
-          clearInterval(timerInterval);
-          checkGuess();
-        }
-      }, 1000);
+    // Settings
+    function toggleSettings() {
+      const panel = document.getElementById("settingsPanel");
+      panel.style.display = (panel.style.display === "block") ? "none" : "block";
     }
 
-    function restartGame() {
-      level = 1;
-      score = 0;
-      updateScore();
-      startGame();
+    document.getElementById("volume").addEventListener("input", function() {
+      bgMusic.volume = this.value;
+    });
+
+    document.getElementById("trackSelect").addEventListener("change", function() {
+      bgMusic.pause();
+      bgMusic = new Audio(this.value);
+      bgMusic.loop = true;
+      bgMusic.volume = document.getElementById("volume").value;
+      bgMusic.play();
+    });
+
+    // Drawing Functions
+    function drawSun() {
+      ctx.fillStyle = "yellow";
+      ctx.beginPath();
+      ctx.arc(150, 150, 60, 0, Math.PI * 2);
+      ctx.fill();
     }
 
-    startGame();
+    function drawTree() {
+      ctx.fillStyle = "brown";
+      ctx.fillRect(140, 180, 20, 80);
+      ctx.fillStyle = "green";
+      ctx.beginPath();
+      ctx.arc(150, 150, 50, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawHouse() {
+      ctx.fillStyle = "blue";
+      ctx.fillRect(100, 150, 100, 100);
+      ctx.fillStyle = "red";
+      ctx.beginPath();
+      ctx.moveTo(100, 150);
+      ctx.lineTo(200, 150);
+      ctx.lineTo(150, 80);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // Start game
+    loadQuestion();
   </script>
 </body>
 </html>

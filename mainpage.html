@@ -5,67 +5,140 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tara Lama - Portfolio</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to right, #4facfe, #00f2fe);
+    /* General Reset */
+    * {
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(120deg, #1a1a1a, #0f2027, #2c5364);
+      color: #f1f1f1;
       text-align: center;
+      overflow-x: hidden;
     }
+
     header {
-      background: #333;
-      color: white;
-      padding: 20px;
+      padding: 50px 20px;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 30px rgba(0, 255, 200, 0.2);
     }
+
     header h1 {
-      margin: 0;
-      font-size: 2.5em;
+      font-size: 3em;
+      background: linear-gradient(to right, #00ffcc, #33ccff, #66ff99);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: glow 3s infinite alternate;
     }
+
+    @keyframes glow {
+      from { text-shadow: 0 0 10px #00ffcc; }
+      to { text-shadow: 0 0 30px #33ccff, 0 0 50px #66ff99; }
+    }
+
     header p {
-      margin: 5px 0;
       font-size: 1.2em;
+      margin-top: 10px;
+      opacity: 0.9;
     }
+
     section {
-      padding: 40px 20px;
+      padding: 60px 20px;
+      max-width: 900px;
+      margin: auto;
     }
+
     h2 {
       margin-bottom: 20px;
+      font-size: 2em;
+      color: #00ffcc;
     }
+
+    .about {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(0, 255, 200, 0.2);
+      margin-bottom: 40px;
+      line-height: 1.7em;
+    }
+
     .btn-container {
-      margin: 20px 0;
+      margin-top: 30px;
     }
+
     .btn {
       display: inline-block;
-      margin: 10px;
-      padding: 15px 25px;
-      background: #ff7e5f;
-      color: white;
-      text-decoration: none;
+      margin: 15px;
+      padding: 15px 30px;
+      font-size: 1.1em;
       font-weight: bold;
-      border-radius: 8px;
-      transition: background 0.3s;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #ff512f, #dd2476);
+      box-shadow: 0 5px 20px rgba(255, 100, 100, 0.4);
+      transition: transform 0.3s, box-shadow 0.3s;
     }
+
     .btn:hover {
-      background: #feb47b;
+      transform: scale(1.1);
+      box-shadow: 0 8px 30px rgba(255, 80, 150, 0.7);
     }
+
     footer {
-      background: #333;
-      color: white;
-      padding: 10px;
-      margin-top: 30px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 20px;
+      margin-top: 50px;
+      font-size: 0.9em;
+      letter-spacing: 1px;
+    }
+
+    /* Floating CGI Orbs */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(60px);
+      opacity: 0.6;
+      animation: float 15s infinite ease-in-out;
+    }
+
+    .orb1 { width: 250px; height: 250px; background: #00ffcc; top: 10%; left: 10%; }
+    .orb2 { width: 300px; height: 300px; background: #33ccff; bottom: 15%; right: 15%; animation-delay: 5s; }
+    .orb3 { width: 200px; height: 200px; background: #66ff99; top: 60%; left: 70%; animation-delay: 10s; }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) translateX(0px); }
+      50% { transform: translateY(-30px) translateX(20px); }
     }
   </style>
 </head>
 <body>
+  <!-- CGI Floating Orbs -->
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="orb orb3"></div>
+
   <header>
     <h1>Tara Lama</h1>
-    <p>Game Developer | Web Designer | Creative Coder</p>
+    <p>🌱 Nature Enthusiast | 💻 Technology Explorer | 🎮 Game Developer</p>
   </header>
 
   <section>
-    <h2>Welcome to My Portfolio</h2>
-    <p>Here you can explore my projects and games.</p>
+    <h2>About Me</h2>
+    <div class="about">
+      <p>Hello! I'm <strong>Tara Lama</strong>, a creative soul who finds balance between the beauty of <em>nature</em> and the innovations of <em>technology</em>.  
+      🌿 I love exploring mountains, forests, and natural landscapes that remind me of simplicity and peace.  
+      ⚡ At the same time, I’m passionate about coding, game development, and futuristic tech that shapes our world.  
 
+      My goal is to build projects that bring together <strong>the calmness of nature</strong> with <strong>the power of modern technology</strong>.</p>
+    </div>
+
+    <h2>My Projects</h2>
     <div class="btn-container">
       <a href="https://taralama428.github.io/taralama428" class="btn" target="_blank">🎮 Old Game</a>
       <a href="https://taralama428.github.io/taralama428/newgame.html" class="btn" target="_blank">🆕 New Game</a>
@@ -73,7 +146,7 @@
   </section>
 
   <footer>
-    <p>© 2025 Tara Lama | All Rights Reserved</p>
+    <p>© 2025 Tara Lama | Crafted with ❤️ Nature & 💡 Technology</p>
   </footer>
 </body>
 </html>

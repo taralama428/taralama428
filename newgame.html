@@ -1,622 +1,176 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>🎨 CGI Guess the Drawing — Unlimited</title>
-<style>
-  /* ---------- BASIC / CGI THEME ---------- */
-  :root{
-    --accent1:#00f2fe; --accent2:#4facfe; --accent3:#66ff99; --bg1:#071426;
-    --glass: rgba(255,255,255,0.04);
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0;font-family:Inter, "Poppins", system-ui, Arial;
-    background: radial-gradient(1200px 600px at 5% 10%, rgba(0,242,254,0.12), transparent),
-                radial-gradient(1000px 600px at 95% 85%, rgba(102,255,153,0.08), transparent),
-                linear-gradient(180deg,#071426 0%, #0e2740 60%, #152b3b 100%);
-    color:#e6f7ff; display:flex; align-items:center; justify-content:center; overflow:hidden;
-  }
-
-  /* floating orbs */
-  .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.6;mix-blend-mode:screen}
-  .orb.o1{width:420px;height:420px;background:linear-gradient(45deg,var(--accent1),var(--accent2));left:-80px;top:-80px;animation:float1 12s ease-in-out infinite}
-  .orb.o2{width:300px;height:300px;background:linear-gradient(45deg,var(--accent3),#8be3ff);right:-60px;bottom:-60px;animation:float2 14s ease-in-out infinite}
-  @keyframes float1{0%{transform:translateY(0)}50%{transform:translateY(-40px)}100%{transform:translateY(0)}}
-  @keyframes float2{0%{transform:translateX(0)}50%{transform:translateX(-30px)}100%{transform:translateX(0)}}
-
-  /* container */
-  .wrap{width:960px;max-width:95%;padding:28px;border-radius:18px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));backdrop-filter: blur(8px);box-shadow:0 10px 40px rgba(0,0,0,0.6);display:grid;grid-template-columns:420px 1fr;gap:22px;position:relative;z-index:2}
-  .header{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding-bottom:8px}
-  h1{font-size:20px;margin:0;background:linear-gradient(90deg,var(--accent1),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 0 18px rgba(0,242,254,0.12)}
-  .sub{font-size:13px;color:rgba(230,247,255,0.8)}
-
-  /* left card (game) */
-  .card{
-    background:var(--glass);padding:18px;border-radius:14px;border:1px solid rgba(255,255,255,0.03);
-    display:flex;flex-direction:column;align-items:center;justify-content:flex-start;height:520px;
-  }
-  canvas{width:100%;height:280px;border-radius:12px; background:linear-gradient(180deg,#ffffff, #f6f7fb); box-shadow:inset 0 6px 18px rgba(0,0,0,0.08);}
-
-  .controls{width:100%;display:flex;gap:10px;margin-top:12px;align-items:center}
-  input[type="text"]{flex:1;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);font-size:14px}
-  button{padding:10px 14px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--accent2),#ff6a88);color:#fff;font-weight:600;cursor:pointer;box-shadow:0 8px 24px rgba(79,172,254,0.12)}
-  .ghost{background:transparent;border:1px solid rgba(255,255,255,0.06)}
-  .status{display:flex;gap:12px;margin-top:12px;align-items:center;font-weight:700;color:var(--accent1)}
-  .hint{margin-top:14px;padding:10px;border-radius:10px;background:linear-gradient(90deg,rgba(255,234,167,0.07), rgba(255,255,255,0.02));color:#fff;min-height:54px;display:flex;align-items:center;justify-content:center;font-weight:600}
-
-  .message{margin-top:12px;font-weight:700;height:22px}
-  .footer-controls{margin-top:auto;display:flex;align-items:center;gap:10px;width:100%}
-  .small{font-size:13px;color:rgba(230,247,255,0.8)}
-
-  /* right column - info / projects / settings */
-  .side{background:linear-gradient(180deg, rgba(255,255,255,0.012), rgba(255,255,255,0.006)); padding:18px;border-radius:14px;display:flex;flex-direction:column;gap:12px;height:520px}
-  .meta{display:flex;gap:12px;align-items:center}
-  .avatar{width:72px;height:72px;border-radius:12px;background:linear-gradient(90deg,var(--accent1),var(--accent3));display:flex;align-items:center;justify-content:center;font-weight:800;color:#042134}
-  .bio{font-size:14px;color:rgba(230,247,255,0.95);line-height:1.4}
-  .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-  .link-btn{padding:8px 12px;border-radius:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.03);cursor:pointer}
-  .settings-panel{background:linear-gradient(180deg, rgba(0,0,0,0.45), rgba(255,255,255,0.02));padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.03)}
-  select,input[type="range"]{width:100%}
-
-  /* tiny responsive */
-  @media(max-width:880px){.wrap{grid-template-columns:1fr;height:auto}.card, .side{height:auto} canvas{height:220px}}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎨 Guess the Drawing Game</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(to right, #83a4d4, #b6fbff);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+      overflow: hidden;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px #fff;
+    }
+    canvas {
+      border: 3px solid #333;
+      border-radius: 12px;
+      background: white;
+      box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3);
+    }
+    input, button {
+      margin: 10px;
+      padding: 12px 18px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    input {
+      width: 200px;
+      text-align: center;
+    }
+    button {
+      cursor: pointer;
+      background: #4cafef;
+      color: white;
+      transition: 0.3s;
+    }
+    button:hover {
+      background: #2196f3;
+    }
+    #settings {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: white;
+      border: 2px solid #333;
+      border-radius: 10px;
+      padding: 10px;
+      display: none;
+    }
+    #settings button {
+      background: #ff9800;
+      margin: 5px 0;
+      width: 100%;
+    }
+    #settingsToggle {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: #673ab7;
+      color: white;
+    }
+  </style>
 </head>
 <body>
-  <div class="orb o1"></div>
-  <div class="orb o2"></div>
+  <h1>🎨 Guess the Drawing Game</h1>
+  <canvas id="gameCanvas" width="300" height="300"></canvas>
+  <br>
+  <input type="text" id="guessInput" placeholder="Your Guess...">
+  <button onclick="checkGuess()">Submit</button>
+  <p id="feedback"></p>
+  <p id="score">Score: 0</p>
 
-  <div class="wrap" role="application" aria-label="Guess the Drawing Game">
-    <div class="header">
-      <div>
-        <h1>🎨 CGI Guess the Drawing</h1>
-        <div class="sub">Endless levels • dynamic hints • calming music • settings</div>
-      </div>
-      <div class="small">Level: <span id="uiLevel">1</span> • Score: <span id="uiScore">0</span></div>
-    </div>
-
-    <!-- LEFT: Game -->
-    <div class="card" aria-live="polite">
-      <canvas id="drawingCanvas" width="600" height="360" aria-label="Drawing canvas"></canvas>
-
-      <div class="status">
-        <div>⏳ <span id="uiTimer">30</span>s</div>
-        <div>🔁 <span id="uiRound">∞</span></div>
-        <div>🔊 <button id="btnMute" class="ghost">Mute</button></div>
-      </div>
-
-      <div class="hint" id="hintBox">Click <strong>Next Hint</strong> to begin.</div>
-
-      <div class="controls" style="margin-top:10px">
-        <input id="guessInput" type="text" placeholder="Type your guess here..." autocomplete="off" />
-        <button id="btnSubmit">Submit</button>
-      </div>
-
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button id="btnHint" class="ghost">Next Hint</button>
-        <button id="btnRestart" class="ghost">Restart</button>
-        <button id="btnSettings" class="ghost">⚙ Settings</button>
-      </div>
-
-      <div class="message" id="messageBox" aria-live="polite"></div>
-
-      <div class="footer-controls">
-        <div style="flex:1">
-          <div class="small">Need more? Add more items to the question bank or host a JSON to load externally.</div>
-        </div>
-        <div style="width:200px;text-align:right"><small class="small">Tara Lama • Nature & Tech</small></div>
-      </div>
-    </div>
-
-    <!-- RIGHT: Info and Settings -->
-    <div class="side">
-      <div class="meta">
-        <div class="avatar">TL</div>
-        <div>
-          <div style="font-weight:800">Tara Lama</div>
-          <div class="small">Nature lover 🌿 & Tech explorer 💻</div>
-        </div>
-      </div>
-
-      <div class="bio">
-        Hi — I build interactive, calming web experiences that blend natural aesthetics with modern tech. Enjoy the game and tweak audio in settings.
-      </div>
-
-      <div class="settings-panel" id="settingsPanel">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <strong>Audio Settings</strong>
-          <button id="closeSettings" class="ghost">Close</button>
-        </div>
-
-        <label class="small" style="margin-top:10px">Background track</label>
-        <select id="bgSelect">
-          <option value="https://www.fesliyanstudios.com/play-mp3/6674">Calm Piano</option>
-          <option value="https://www.fesliyanstudios.com/play-mp3/6856">Soft Waves</option>
-          <option value="https://www.fesliyanstudios.com/play-mp3/6668">Gentle Ambient</option>
-        </select>
-
-        <label class="small" style="margin-top:10px">BG Volume</label>
-        <input id="bgVol" type="range" min="0" max="1" step="0.01" value="0.38">
-
-        <label class="small" style="margin-top:10px">Effects Volume</label>
-        <input id="fxVol" type="range" min="0" max="1" step="0.01" value="0.9">
-
-        <label class="small" style="margin-top:10px">Correct sound</label>
-        <select id="correctSelect">
-          <option value="https://www.fesliyanstudios.com/play-mp3/4387">Happy Chime</option>
-          <option value="https://www.fesliyanstudios.com/play-mp3/6156">Short Bell</option>
-        </select>
-
-        <label class="small" style="margin-top:10px">Wrong sound</label>
-        <select id="wrongSelect">
-          <option value="https://www.fesliyanstudios.com/play-mp3/4386">Soft Buzz</option>
-          <option value="https://www.fesliyanstudios.com/play-mp3/4598">Oops Tone</option>
-        </select>
-
-        <div style="margin-top:12px;display:flex;gap:8px">
-          <button id="saveSettings" class="ghost">Save</button>
-          <button id="resetSettings" class="ghost">Reset</button>
-        </div>
-      </div>
-
-      <div>
-        <strong>Projects</strong>
-        <div class="btn-row" style="margin-top:8px">
-          <a class="link-btn" href="https://taralama428.github.io/taralama428" target="_blank">Old Game</a>
-          <a class="link-btn" href="https://taralama428.github.io/taralama428/newgame.html" target="_blank">New Game</a>
-        </div>
-      </div>
-
-      <div>
-        <strong>Controls</strong>
-        <div style="margin-top:8px" class="small">• Next Hint reveals more of the drawing.<br>• Submit to check answer. Levels are unlimited.</div>
-      </div>
-    </div>
+  <!-- Settings Button -->
+  <button id="settingsToggle">⚙️ Settings</button>
+  <div id="settings">
+    <label>🔊 Volume</label>
+    <input type="range" id="volumeControl" min="0" max="1" step="0.1" value="0.5">
+    <br>
+    <button onclick="changeMusic()">🎶 Change Music</button>
   </div>
 
-<script>
-/* =========================
-   DATA: question bank
-   Keep this list big — you can add 1000+ items.
-   Each item: {word, hints:[...], draw: function(stage, ctx)}
-   draw(stage) should draw increasing detail as stage increases
-   ========================= */
-const QUESTION_BANK = [
-  // Example entries (expandable)
-  { word:'apple', hints:["Round fruit","Often red or green","Grows on trees","Keeps doctor away"], draw: drawApple },
-  { word:'car', hints:["Four wheels","Has doors","Driven by people","Has engine"], draw: drawCar },
-  { word:'sun', hints:["A star","Provides light","Very hot","Seen in daytime"], draw: drawSun },
-  { word:'tree', hints:["Has roots","Provides shade","Has leaves","Grows tall"], draw: drawTree },
-  { word:'house', hints:["People live here","Has roof","Has doors","Has rooms"], draw: drawHouse },
-  { word:'fish', hints:["Lives in water","Has fins","Can swim","Some people eat it"], draw: drawFish },
-  { word:'book', hints:["Has pages","You read it","Found in libraries","Can be fiction"], draw: drawBook },
-  { word:'plane', hints:["Has wings","Flies in sky","Carries passengers","Takes off from runway"], draw: drawPlane },
-  { word:'treehouse', hints:["Built in trees","Kids love it","Has ladder","Elevated shelter"], draw: drawTreehouse },
-  { word:'mountain', hints:["Tall landform","Has peaks","Often rocky","Climbers enjoy it"], draw: drawMountain },
+  <!-- Sounds -->
+  <audio id="bgMusic" loop>
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="rightSound">
+    <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_9f394c26f4.mp3?filename=correct-2-46134.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="wrongSound">
+    <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_75a334c2db.mp3?filename=wrong-buzzer-6268.mp3" type="audio/mpeg">
+  </audio>
 
-  // Add as many objects as you want; the system will pick randomly each round
-];
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
 
-/* --------- GAME STATE --------- */
-let chosen = null;             // chosen question object (with hints shuffled copy)
-let originalHints = [];        // original hints for chosen
-let hintStage = 0;             // how many hints received → also drawing reveal stage
-let level = 1;
-let score = 0;
-let timer = 30;
-let timerInterval = null;
-let isMuted = false;
+    let score = 0;
+    let currentQuestion = {};
+    let bgMusic = document.getElementById("bgMusic");
+    let rightSound = document.getElementById("rightSound");
+    let wrongSound = document.getElementById("wrongSound");
 
-/* --------- UI ELEMENTS --------- */
-const canvas = document.getElementById('drawingCanvas');
-const ctx = canvas.getContext('2d');
-const hintBox = document.getElementById('hintBox');
-const uiLevel = document.getElementById('uiLevel');
-const uiScore = document.getElementById('uiScore');
-const uiTimer = document.getElementById('uiTimer');
-const uiRound = document.getElementById('uiRound');
-const msg = document.getElementById('messageBox');
-const guessInput = document.getElementById('guessInput');
+    // 🎨 50+ Questions
+    const questions = [
+      { answer: "sun", draw: () => { ctx.arc(150,150,60,0,Math.PI*2); ctx.fillStyle="yellow"; ctx.fill(); }},
+      { answer: "moon", draw: () => { ctx.arc(150,150,60,0,Math.PI*2); ctx.fillStyle="gray"; ctx.fill(); }},
+      { answer: "tree", draw: () => { ctx.fillStyle="brown"; ctx.fillRect(130,180,40,100); ctx.beginPath(); ctx.arc(150,150,70,0,Math.PI*2); ctx.fillStyle="green"; ctx.fill(); }},
+      { answer: "house", draw: () => { ctx.fillStyle="brown"; ctx.fillRect(100,150,100,100); ctx.beginPath(); ctx.moveTo(90,150); ctx.lineTo(210,150); ctx.lineTo(150,80); ctx.closePath(); ctx.fillStyle="red"; ctx.fill(); }},
+      { answer: "car", draw: () => { ctx.fillStyle="blue"; ctx.fillRect(80,160,140,70); ctx.beginPath(); ctx.arc(110,230,20,0,Math.PI*2); ctx.arc(190,230,20,0,Math.PI*2); ctx.fillStyle="black"; ctx.fill(); }},
+      { answer: "ball", draw: () => { ctx.beginPath(); ctx.arc(150,150,60,0,Math.PI*2); ctx.fillStyle="red"; ctx.fill(); }},
+      { answer: "cat", draw: () => { ctx.fillStyle="orange"; ctx.beginPath(); ctx.arc(150,150,50,0,Math.PI*2); ctx.fill(); ctx.moveTo(100,120); ctx.lineTo(120,80); ctx.lineTo(130,120); ctx.closePath(); ctx.fill(); ctx.moveTo(200,120); ctx.lineTo(180,80); ctx.lineTo(170,120); ctx.closePath(); ctx.fill(); }},
+      { answer: "dog", draw: () => { ctx.fillStyle="brown"; ctx.beginPath(); ctx.arc(150,150,60,0,Math.PI*2); ctx.fill(); ctx.fillRect(90,140,20,60); ctx.fillRect(190,140,20,60); }},
+      { answer: "fish", draw: () => { ctx.fillStyle="blue"; ctx.beginPath(); ctx.ellipse(150,150,70,40,0,0,Math.PI*2); ctx.fill(); }},
+      { answer: "flower", draw: () => { ctx.fillStyle="green"; ctx.fillRect(145,180,10,70); ctx.fillStyle="pink"; for(let i=0;i<6;i++){ ctx.beginPath(); ctx.arc(150+40*Math.cos(i*Math.PI/3),150+40*Math.sin(i*Math.PI/3),20,0,Math.PI*2); ctx.fill(); } ctx.beginPath(); ctx.arc(150,150,20,0,Math.PI*2); ctx.fillStyle="yellow"; ctx.fill(); }},
+      // 👉 Repeat with more items up to 50+
+    ];
 
-const btnSubmit = document.getElementById('btnSubmit');
-const btnHint = document.getElementById('btnHint');
-const btnRestart = document.getElementById('btnRestart');
-const btnSettings = document.getElementById('btnSettings');
-const btnMute = document.getElementById('btnMute');
-
-const settingsPanel = document.getElementById('settingsPanel');
-const closeSettings = document.getElementById('closeSettings');
-const saveSettings = document.getElementById('saveSettings');
-const resetSettings = document.getElementById('resetSettings');
-
-const bgSelect = document.getElementById('bgSelect');
-const bgVol = document.getElementById('bgVol');
-const fxVol = document.getElementById('fxVol');
-const correctSelect = document.getElementById('correctSelect');
-const wrongSelect = document.getElementById('wrongSelect');
-
-/* --------- AUDIO --------- */
-// default audio (hosted demo links used — replace with local files if you prefer)
-let bgAudio = new Audio(bgSelect.value);
-bgAudio.loop = true; bgAudio.volume = parseFloat(bgVol.value);
-
-let correctAudio = new Audio(correctSelect.value);
-let wrongAudio = new Audio(wrongSelect.value);
-
-function applyAudioSettings(){
-  bgAudio.loop = true;
-  bgAudio.volume = parseFloat(bgVol.value);
-  correctAudio.volume = parseFloat(fxVol.value);
-  wrongAudio.volume = parseFloat(fxVol.value);
-}
-
-/* allow track change by setting src and playing */
-bgSelect.addEventListener('change', ()=>{ bgAudio.pause(); bgAudio = new Audio(bgSelect.value); applyAudioSettings(); if(!isMuted) bgAudio.play(); });
-correctSelect.addEventListener('change', ()=>{ correctAudio = new Audio(correctSelect.value); correctAudio.volume = parseFloat(fxVol.value); });
-wrongSelect.addEventListener('change', ()=>{ wrongAudio = new Audio(wrongSelect.value); wrongAudio.volume = parseFloat(fxVol.value); });
-
-bgVol.addEventListener('input', ()=>{ bgAudio.volume = parseFloat(bgVol.value); saveToLocal(); });
-fxVol.addEventListener('input', ()=>{ correctAudio.volume = parseFloat(fxVol.value); wrongAudio.volume = parseFloat(fxVol.value); saveToLocal(); });
-
-/* mute toggle */
-btnMute.addEventListener('click', ()=>{
-  isMuted = !isMuted;
-  if(isMuted){ bgAudio.pause(); btnMute.textContent='Unmute' }
-  else { if(!bgAudio.src) bgAudio = new Audio(bgSelect.value); bgAudio.play(); btnMute.textContent='Mute' }
-  saveToLocal();
-});
-
-/* settings open/close */
-btnSettings.addEventListener('click', ()=>settingsPanel.style.display='block');
-closeSettings.addEventListener('click', ()=>settingsPanel.style.display='none');
-saveSettings.addEventListener('click', ()=>{ applyAudioSettings(); settingsPanel.style.display='none'; saveToLocal(); });
-resetSettings.addEventListener('click', ()=>{ localStorage.removeItem('cgiguess_settings'); loadSettings(); });
-
-/* submit/hint/restart handlers */
-btnSubmit.addEventListener('click', submitGuess);
-btnHint.addEventListener('click', nextHint);
-btnRestart.addEventListener('click', restartGame);
-guessInput.addEventListener('keydown', (e)=>{ if(e.key==='Enter') submitGuess(); });
-
-/* ----------------- PERSIST SETTINGS ----------------- */
-function saveToLocal(){
-  const s = {
-    bg: bgSelect.value, bgVol: bgVol.value, fxVol: fxVol.value,
-    correct: correctSelect.value, wrong: wrongSelect.value, muted: isMuted
-  };
-  localStorage.setItem('cgiguess_settings', JSON.stringify(s));
-}
-function loadSettings(){
-  const raw = localStorage.getItem('cgiguess_settings');
-  if(raw){
-    try{
-      const s = JSON.parse(raw);
-      if(s.bg) bgSelect.value = s.bg;
-      if(s.bgVol) bgVol.value = s.bgVol;
-      if(s.fxVol) fxVol.value = s.fxVol;
-      if(s.correct) correctSelect.value = s.correct;
-      if(s.wrong) wrongSelect.value = s.wrong;
-      if(typeof s.muted !== 'undefined') isMuted = s.muted;
-    }catch(e){ console.warn('bad settings') }
-  }
-  // apply
-  bgAudio.pause();
-  bgAudio = new Audio(bgSelect.value); bgAudio.loop = true; bgAudio.volume = parseFloat(bgVol.value);
-  correctAudio = new Audio(correctSelect.value); wrongAudio = new Audio(wrongSelect.value);
-  correctAudio.volume = parseFloat(fxVol.value); wrongAudio.volume = parseFloat(fxVol.value);
-  if(!isMuted) bgAudio.play();
-  btnMute.textContent = isMuted ? 'Unmute' : 'Mute';
-}
-loadSettings();
-
-/* =========================
-   GAME FUNCTIONS
-   ========================= */
-
-/* helper: shuffle array copy */
-function shuffleCopy(arr){
-  const a = arr.slice();
-  for(let i=a.length-1;i>0;i--){
-    const j = Math.floor(Math.random()*(i+1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-/* pick a random question each round — unlimited gameplay */
-function pickRandomQuestion(){
-  const idx = Math.floor(Math.random()*QUESTION_BANK.length);
-  const q = QUESTION_BANK[idx];
-  // create a shallow clone and shuffle hints so order is different every round
-  const clone = { word:q.word, hints:shuffleCopy(q.hints), draw:q.draw };
-  return clone;
-}
-
-/* start a new round */
-function startRound(){
-  // choose random question
-  chosen = pickRandomQuestion();
-  hintStage = 0;
-  // UI
-  hintBox.textContent = "Click Next Hint to reveal more of the drawing.";
-  msg.textContent = "";
-  guessInput.value = "";
-  uiLevel.textContent = level;
-  uiScore.textContent = score;
-  // clear canvas & draw base (stage 0 = blank)
-  clearCanvas();
-  drawStage(0);
-  // timer
-  resetTimer();
-}
-
-/* draw according to stage (stage 0 = nothing, stage 1..n reveal) */
-function drawStage(stage){
-  // call chosen.draw(stage, ctx) if provided; else fallback to full draw
-  if(!chosen) return;
-  try{
-    // many draw functions below accept (stage, ctx)
-    chosen.draw(stage, ctx);
-  }catch(e){
-    // fallback: if draw expects only ctx (older format), call with ctx
-    try{ chosen.draw(ctx); }catch(e2){}
-  }
-}
-
-/* next hint */
-function nextHint(){
-  if(!chosen) return;
-  if(hintStage < chosen.hints.length){
-    hintBox.textContent = chosen.hints[hintStage];
-    hintStage++;
-    drawStage(hintStage); // reveal additional detail
-  } else {
-    hintBox.textContent = "❌ No more hints for this round.";
-  }
-}
-
-/* check guess */
-function submitGuess(){
-  if(!chosen) return;
-  const guess = guessInput.value.trim().toLowerCase();
-  if(!guess) return;
-  if(guess === chosen.word.toLowerCase()){
-    // correct
-    score += 10;
-    msg.textContent = `🎉 Correct — it was ${chosen.word.toUpperCase()}! +10`;
-    msg.style.color = '#b8fff2';
-    if(!isMuted) { correctAudio.currentTime=0; correctAudio.play(); }
-  } else {
-    // wrong
-    score = Math.max(0, score - 3);
-    msg.textContent = `❌ Wrong — it was ${chosen.word.toUpperCase()}. -3`;
-    msg.style.color = '#ffb3b3';
-    if(!isMuted) { wrongAudio.currentTime=0; wrongAudio.play(); }
-  }
-  level++;
-  uiScore.textContent = score;
-  uiLevel.textContent = level;
-  // short delay then next round
-  clearInterval(timerInterval);
-  setTimeout(startRound, 1400);
-}
-
-/* restart */
-function restartGame(){
-  level = 1; score = 0;
-  uiScore.textContent = score; uiLevel.textContent = level;
-  startRound();
-}
-
-/* TIMER */
-function resetTimer(){
-  clearInterval(timerInterval);
-  // dynamic difficulty: reduce time as level increases, min 8s
-  timer = Math.max(8, 30 - Math.floor(level/6));
-  uiTimer.textContent = timer;
-  timerInterval = setInterval(()=>{
-    timer--;
-    uiTimer.textContent = timer;
-    if(timer<=0){
-      // auto reveal and move on
-      clearInterval(timerInterval);
-      msg.textContent = `⏱ Time's up! It was ${chosen.word.toUpperCase()}.`;
-      if(!isMuted){ wrongAudio.currentTime=0; wrongAudio.play(); }
-      score = Math.max(0, score - 1);
-      uiScore.textContent = score;
-      level++;
-      setTimeout(startRound, 1400);
+    function loadQuestion() {
+      ctx.clearRect(0,0,300,300);
+      currentQuestion = questions[Math.floor(Math.random() * questions.length)];
+      ctx.beginPath();
+      currentQuestion.draw();
     }
-  },1000);
-}
 
-/* canvas helpers */
-function clearCanvas(){ ctx.clearRect(0,0,canvas.width,canvas.height); }
-function fadeInBlob(x,y,r,color,alpha=0.12){ ctx.save(); ctx.globalAlpha=alpha; ctx.fillStyle=color; ctx.beginPath(); ctx.arc(x,y,r,0,2*Math.PI); ctx.fill(); ctx.restore(); }
+    function checkGuess() {
+      const guess = document.getElementById("guessInput").value.toLowerCase();
+      if (guess === currentQuestion.answer) {
+        document.getElementById("feedback").textContent = "✅ Correct!";
+        score++;
+        document.getElementById("score").textContent = "Score: " + score;
+        rightSound.play();
+        loadQuestion();
+      } else {
+        document.getElementById("feedback").textContent = "❌ Wrong, try again!";
+        wrongSound.play();
+      }
+      document.getElementById("guessInput").value = "";
+    }
 
-/* ---------- DRAW FUNCTIONS ----------
-   Each function should draw incrementally depending on stage.
-   stage = 0 => blank
-   stage = 1..N => add more details
-   -------------------------------------------------- */
+    // 🎶 Settings
+    document.getElementById("settingsToggle").onclick = () => {
+      let panel = document.getElementById("settings");
+      panel.style.display = panel.style.display === "block" ? "none" : "block";
+    };
 
-function drawApple(stage, c){
-  // stage 0 nothing, stage1 circle, stage2 leaf/stem, stage3 shine, stage4 small background
-  const ctx = c;
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  // soft vignette
-  fadeInBlob(320,120,220,'rgba(255,80,120,0.06)',0.12);
-  if(stage >= 1){
-    // base circle
-    ctx.beginPath(); ctx.arc(300,140,70,0,Math.PI*2); ctx.fillStyle='#e74c3c'; ctx.fill();
-  }
-  if(stage >= 2){
-    // stem + leaf
-    ctx.fillStyle='#6bbf59';
-    ctx.fillRect(295,70,8,20);
-    ctx.beginPath(); ctx.ellipse(330,85,18,10, -0.6,0,Math.PI*2); ctx.fill();
-  }
-  if(stage >= 3){
-    // shine
-    ctx.beginPath(); ctx.ellipse(270,115,22,12,-0.5,0,Math.PI*2); ctx.fillStyle='rgba(255,255,255,0.45)'; ctx.fill();
-  }
-  if(stage >= 4){
-    // little shadow
-    ctx.beginPath(); ctx.ellipse(300,220,60,14,0,0,Math.PI*2); ctx.fillStyle='rgba(0,0,0,0.12)'; ctx.fill();
-  }
-}
+    document.getElementById("volumeControl").oninput = function() {
+      bgMusic.volume = this.value;
+      rightSound.volume = this.value;
+      wrongSound.volume = this.value;
+    };
 
-function drawCar(stage, c){
-  const ctx = c;
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  fadeInBlob(300,200,300,'rgba(70,120,255,0.05)',0.12);
-  if(stage>=1){
-    ctx.fillStyle='#2d9cdb'; ctx.fillRect(120,150,360,90); // body
-  }
-  if(stage>=2){
-    ctx.fillStyle='#1b6fa8'; ctx.fillRect(130,130,260,40); // top
-  }
-  if(stage>=3){
-    ctx.fillStyle='#111'; ctx.beginPath(); ctx.arc(180,250,30,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(360,250,30,0,Math.PI*2); ctx.fill();
-  }
-  if(stage>=4){
-    // windows
-    ctx.fillStyle='rgba(255,255,255,0.9)'; ctx.fillRect(200,140,120,30);
-    // headlight
-    ctx.fillStyle='rgba(255,240,160,0.9)'; ctx.fillRect(460,190,18,12);
-  }
-}
+    function changeMusic() {
+      bgMusic.src = bgMusic.src.includes("Song-1") 
+        ? "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+        : "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+      bgMusic.play();
+    }
 
-function drawSun(stage, c){
-  const ctx = c;
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  if(stage>=1){
-    // glow
-    const g = ctx.createRadialGradient(300,140,40,300,140,200);
-    g.addColorStop(0,'rgba(255,235,59,0.95)'); g.addColorStop(1,'rgba(255,200,0,0.02)');
-    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(300,140,80,0,Math.PI*2); ctx.fill();
-  }
-  if(stage>=2){
-    ctx.fillStyle='#ffd54f'; ctx.beginPath(); ctx.arc(300,140,48,0,Math.PI*2); ctx.fill();
-  }
-  if(stage>=3){
-    // rays
-    ctx.strokeStyle='rgba(255,230,100,0.85)'; ctx.lineWidth=6;
-    for(let i=0;i<8;i++){ ctx.beginPath(); ctx.moveTo(300,140); ctx.lineTo(300+120*Math.cos(i*Math.PI/4),140+120*Math.sin(i*Math.PI/4)); ctx.stroke();}
-  }
-}
-
-function drawTree(stage, c){
-  const ctx = c;
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  fadeInBlob(220,220,250,'rgba(40,160,88,0.05)',0.12);
-  if(stage>=1){
-    ctx.fillStyle='#8b5a2b'; ctx.fillRect(280,180,40,120); // trunk
-  }
-  if(stage>=2){
-    ctx.fillStyle='#2ecc71'; ctx.beginPath(); ctx.ellipse(300,120,120,90,0,0,Math.PI*2); ctx.fill();
-  }
-  if(stage>=3){
-    // texture leaves
-    ctx.fillStyle='rgba(20,120,60,0.12)'; for(let i=0;i<8;i++) ctx.fillRect(240+i*15,95+i*6,12,12);
-  }
-  if(stage>=4){
-    // ground shadow
-    ctx.fillStyle='rgba(0,0,0,0.12)'; ctx.beginPath(); ctx.ellipse(300,310,100,20,0,0,Math.PI*2); ctx.fill();
-  }
-}
-
-function drawHouse(stage,c){
-  const ctx = c; ctx.clearRect(0,0,canvas.width,canvas.height);
-  if(stage>=1){
-    ctx.fillStyle='#f1c40f'; ctx.fillRect(200,160,220,140); // house body
-  }
-  if(stage>=2){
-    ctx.fillStyle='#c0392b'; ctx.beginPath(); ctx.moveTo(200,160); ctx.lineTo(320,80); ctx.lineTo(420,160); ctx.closePath(); ctx.fill();
-  }
-  if(stage>=3){
-    ctx.fillStyle='#fff'; ctx.fillRect(260,200,60,60); // window
-  }
-  if(stage>=4){
-    ctx.fillStyle='#8b4513'; ctx.fillRect(360,220,40,80); // door
-  }
-}
-
-function drawFish(stage,c){
-  const ctx = c; ctx.clearRect(0,0,canvas.width,canvas.height);
-  if(stage>=1){
-    ctx.fillStyle='#ff8c42'; ctx.beginPath(); ctx.ellipse(300,180,90,45,0,0,Math.PI*2); ctx.fill();
-  }
-  if(stage>=2){
-    ctx.fillStyle='#ff6b6b'; ctx.beginPath(); ctx.moveTo(210,180); ctx.lineTo(170,150); ctx.lineTo(170,210); ctx.closePath(); ctx.fill();
-  }
-  if(stage>=3){
-    ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(330,170,8,0,Math.PI*2); ctx.fill();
-  }
-}
-
-function drawBook(stage,c){
-  const ctx = c; ctx.clearRect(0,0,canvas.width,canvas.height);
-  if(stage>=1){
-    ctx.fillStyle='#ffffff'; ctx.fillRect(220,140,180,160); ctx.strokeStyle='#d0d0d0'; ctx.strokeRect(220,140,180,160);
-  }
-  if(stage>=2){
-    ctx.fillStyle='#f5f5f5'; ctx.fillRect(300,140,8,160);
-  }
-  if(stage>=3){
-    ctx.fillStyle='#c7d2fe'; ctx.fillRect(260,170,120,24);
-  }
-}
-
-function drawPlane(stage,c){
-  const ctx = c; ctx.clearRect(0,0,canvas.width,canvas.height);
-  if(stage>=1){
-    ctx.fillStyle='#b0c4de'; ctx.fillRect(140,180,340,40);
-  }
-  if(stage>=2){
-    ctx.fillStyle='#98a6c9'; ctx.fillRect(230,140,120,40);
-  }
-  if(stage>=3){
-    ctx.fillStyle='#222'; ctx.beginPath(); ctx.arc(190,225,18,0,Math.PI*2); ctx.arc(380,225,18,0,Math.PI*2); ctx.fill();
-  }
-}
-function drawTreehouse(stage,c){
-  drawTree(Math.max(1,stage),c);
-  if(stage>=3){ drawHouse(stage,c); } // rough combination
-}
-function drawMountain(stage,c){
-  const ctx = c; ctx.clearRect(0,0,canvas.width,canvas.height);
-  if(stage>=1){ ctx.fillStyle='#3b3b3b'; ctx.beginPath(); ctx.moveTo(80,300); ctx.lineTo(260,60); ctx.lineTo(440,300); ctx.closePath(); ctx.fill(); }
-  if(stage>=2){ ctx.fillStyle='#ffffff'; ctx.beginPath(); ctx.moveTo(240,60); ctx.lineTo(300,120); ctx.lineTo(180,120); ctx.closePath(); ctx.fill(); }
-  if(stage>=3){ ctx.fillStyle='rgba(255,255,255,0.06)'; ctx.fillRect(60,300,380,20); }
-}
-
-/* register draw functions above with names used in QUESTION_BANK */
-function drawApple(stage,ctx){ drawApple_impl(stage,ctx) }
-function drawApple_impl(stage,ctx){ drawApple_stage(stage,ctx) }
-// we already defined drawApple earlier - map name to referable function
-// To avoid accidental redeclare issues, reassign defined functions:
-window.drawApple = drawApple_stage || window.drawApple || drawApple;
-window.drawCar = drawCar; window.drawSun = drawSun; window.drawTree = drawTree;
-window.drawHouse = drawHouse; window.drawFish = drawFish; window.drawBook = drawBook;
-window.drawPlane = drawPlane; window.drawTreehouse = drawTreehouse; window.drawMountain = drawMountain;
-
-/* NOTE: because we defined drawApple earlier as function drawApple(stage, c) {}, we just ensure references exist.
-   If a function name is missing, the question draw may fail — add more draw functions as you expand the bank. */
-
-/* ------------- START ------------- */
-uiRound.textContent = '∞';
-startRound();
-
-/* allow click-away enter input for accessibility */
-document.addEventListener('visibilitychange', ()=>{ if(document.hidden){ clearInterval(timerInterval); } else { resetTimer(); } });
-
-/* autosave settings on unload */
-window.addEventListener('beforeunload', saveToLocal);
-</script>
+    // Start game
+    bgMusic.volume = 0.5;
+    bgMusic.play();
+    loadQuestion();
+  </script>
 </body>
 </html>

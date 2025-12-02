@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>In-Browser CSV Anomaly Detector</title>
+    <!-- Load Tailwind CSS for modern, responsive styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for better readability and table appearance */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+        }
+        .container {
+            max-width: 1200px;
+        }
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th {
+            background-color: #4f46e5;
+            color: white;
+            font-weight: 600;
+        }
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+        }
+        /* Style for the file input */
+        input[type="file"]::file-selector-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 0.375rem;
+            background-color: #4f46e5;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        input[type="file"]::file-selector-button:hover {
+            background-color: #4338ca;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="container mx-auto bg-white p-6 rounded-xl shadow-2xl">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6 border-b pb-3">CSV Anomaly Detector (IQR Method)</h1>
+        
+        <!-- Input and Control Panel -->
+        <div class="space-y-4 mb-8 p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+            <label for="csvFile" class="block text-lg font-medium text-gray-700">Upload CSV File</label>
+            <input type="file" id="csvFile" accept=".csv" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4">
+            
+            <button onclick="handleFile()" id="analyzeBtn" 
+                    class="w-full sm:w-auto px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition duration-300 disabled:opacity-50"
+                    disabled>
+                Analyze Data
+            </button>
+        </div>
+
+        <!-- Status and Metrics -->
+        <div id="statusMessage" class="mb-6 text-red-600 font-semibold hidden"></div>
+        
+        <div id="metrics" class="flex flex-col sm:flex-row gap-4 mb-8 hidden">
+            <div class="flex-1 p-4 bg-blue-100 rounded-lg shadow-inner">
+                <p class="text-sm font-medium text-blue-800">Total Records</p>
+                <p id="totalCount" class="text-2xl font-bold text-blue-900">0</p>
+            </div>
+            <div class="flex-1 p-4 bg-red-100 rounded-lg shadow-inner">
+                <p class="text-sm font-medium text-red-800">Anomalous Records</p>
+                <p id="anomalyCount" class="text-2xl font-bold text-red-900">0</p>
+            </div>
+            <div class="flex-1 p-4 bg-green-100 rounded-lg shadow-inner">
+                <p class="text-sm font-medium text-green-800">Normal Records</p>
+                <p id="normalCount" class="text-2xl font-bold text-green-900">0</p>
+            </div>
+            <div class="flex-1 p-4 bg-gray-100 rounded-lg shadow-inner flex items-center justify-center">
+                 <button onclick="downloadCSV()" id="downloadBtn" 
+                        class="px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition duration-300 disabled:opacity-50"
+                        disabled>
+                    Download Anomalies as CSV
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Display -->
+        <div id="resultsContainer" class="space-y-10 hidden">
+            
+            <!-- Anomalous Data Table -->
+            <div id="anomaliesSection">
+                <h2 class="text-2xl font-semibold text-red-700 mb-4 flex items-center">
+                    Anomalous Data
+                    <span id="anomaliesBadge" class="ml-3 inline-flex items-center px-3 py-1 text-sm font-medium bg-red-200 text-red-800 rounded-full">0</span>
+                </h2>
+                <div class="table-container">
+                    <table id="anomalousTable" class="min-w-full divide-y divide-gray-200">
+                        <thead></thead>
+                        <tbody>
+                            <tr><td colspan="100%" class="text-center text-gray-500 py-4">No anomalies detected yet.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Normal Data Table -->
+            <div id="normalSection">
+                <h2 class="text-2xl font-semibold text-gray-700 mb-4 flex items-center">
+                    Normal Data
+                    <span id="normalBadge" class="ml-3 inline-flex items-center px-3 py-1 text-sm font-medium bg-gray-200 text-gray-800 rounded-full">0</span>
+                </h2>
+                <div class="table-container">
+                    <table id="normalTable" class="min-w-full divide-y divide-gray-200">
+                        <thead></thead>
+                        <tbody>
+                             <tr><td colspan="100%" class="text-center text-gray-500 py-4">No data loaded yet.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables for data storage
+        let allData = [];
+        let anomalousData = [];
+        let normalData = [];
+        let headers = [];
+
+        // Constants and DOM references
+        const inputFile = document.getElementById('csvFile');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const statusMessage = document.getElementById('statusMessage');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const metrics = document.getElementById('metrics');
+
+        // Event listener to enable the analyze button when a file is selected
+        inputFile.addEventListener('change', () => {
+            analyzeBtn.disabled = !inputFile.files.length;
+            statusMessage.classList.add('hidden');
+        });
+
+        // ===============================================
+        // 1. FILE HANDLING AND PARSING
+        // ===============================================
+
+        /**
+         * Handles the file upload and kicks off the parsing and analysis.
+         */
+        function handleFile() {
+            const file = inputFile.files[0];
+            if (!file) {
+                showStatus('Please select a CSV file first.', true);
+                return;
+            }
+
+            analyzeBtn.disabled = true;
+            showStatus('Analyzing data, please wait...', false);
+            
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const csvText = e.target.result;
+                    parseCSV(csvText);
+                    detectAnomalies();
+                    renderResults();
+                    showStatus('Analysis complete.', false);
+                } catch (error) {
+                    console.error("Error during file processing:", error);
+                    showStatus('Error processing file: ' + error.message, true);
+                    resetApp();
+                } finally {
+                    analyzeBtn.disabled = false;
+                }
+            };
+            reader.onerror = () => {
+                showStatus('Error reading file.', true);
+                analyzeBtn.disabled = false;
+            };
+            reader.readAsText(file);
+        }
+
+        /**
+         * Simple custom CSV parser.
+         * @param {string} csvText - The raw CSV content.
+         */
+        function parseCSV(csvText) {
+            // Split into lines, removing empty lines
+            const lines = csvText.trim().split('\n').filter(line => line.trim() !== '');
+            if (lines.length < 2) {
+                throw new Error('CSV must contain at least a header and one data row.');
+            }
+
+            // Extract headers (first line)
+            headers = lines[0].split(',').map(h => h.trim());
+            
+            allData = [];
+            // Parse data rows
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',').map(v => v.trim());
+                if (values.length !== headers.length) {
+                     // Skip rows with incorrect column count but continue parsing
+                     console.warn(`Skipping row ${i + 1} due to inconsistent column count.`);
+                     continue;
+                }
+                const row = {};
+                headers.forEach((header, index) => {
+                    let value = values[index];
+                    // Attempt to convert to number if possible
+                    const numValue = parseFloat(value);
+                    row[header] = isNaN(numValue) || value.trim() === '' ? value : numValue;
+                });
+                allData.push(row);
+            }
+        }
+
+        // ===============================================
+        // 2. IQR ANOMALY DETECTION LOGIC
+        // ===============================================
+
+        /**
+         * Calculates the value at a specific percentile (e.g., 25 for Q1, 75 for Q3).
+         * @param {number[]} sortedArray - The sorted array of numeric values.
+         * @param {number} p - The percentile (0-100).
+         * @returns {number} The percentile value.
+         */
+        function quantile(sortedArray, p) {
+            const index = (p / 100) * (sortedArray.length - 1);
+            if (index === Math.floor(index)) {
+                return sortedArray[index];
+            }
+            const i = Math.floor(index);
+            const remainder = index - i;
+            // Linear interpolation
+            return sortedArray[i] + remainder * (sortedArray[i + 1] - sortedArray[i]);
+        }
+
+        /**
+         * Detects anomalous rows using the IQR method (1.5 * IQR rule).
+         * A row is an anomaly if any of its numeric values are outliers.
+         */
+        function detectAnomalies() {
+            if (allData.length === 0) return;
+
+            // 1. Identify numeric columns
+            const numericColumns = headers.filter(header => 
+                typeof allData[0][header] === 'number'
+            );
+
+            if (numericColumns.length === 0) {
+                throw new Error('No numeric columns found for anomaly detection.');
+            }
+
+            // Object to store calculated IQR bounds for each numeric column
+            const columnBounds = {};
+
+            // 2. Calculate IQR bounds for each numeric column
+            numericColumns.forEach(column => {
+                // Extract all numeric values for the column
+                const values = allData.map(row => row[column]).filter(v => typeof v === 'number');
+                if (values.length === 0) return;
+
+                // Sort the values
+                const sortedValues = [...values].sort((a, b) => a - b);
+
+                // Calculate Q1 (25th percentile) and Q3 (75th percentile)
+                const Q1 = quantile(sortedValues, 25);
+                const Q3 = quantile(sortedValues, 75);
+
+                // Calculate Interquartile Range (IQR)
+                const IQR = Q3 - Q1;
+
+                // Define the outlier fences (1.5 * IQR rule)
+                const lowerBound = Q1 - 1.5 * IQR;
+                const upperBound = Q3 + 1.5 * IQR;
+
+                columnBounds[column] = { lowerBound, upperBound };
+            });
+
+            // 3. Classify rows based on the bounds
+            const anomalies = [];
+            const normal = [];
+
+            allData.forEach((row, index) => {
+                let isAnomaly = false;
+                
+                // Check if any numeric column value is outside its calculated bounds
+                numericColumns.forEach(column => {
+                    const value = row[column];
+                    const bounds = columnBounds[column];
+
+                    if (typeof value === 'number' && bounds) {
+                        if (value < bounds.lowerBound || value > bounds.upperBound) {
+                            isAnomaly = true;
+                        }
+                    }
+                });
+
+                // Assign the row to the appropriate category
+                if (isAnomaly) {
+                    anomalies.push(row);
+                } else {
+                    normal.push(row);
+                }
+            });
+
+            anomalousData = anomalies;
+            normalData = normal;
+        }
+
+        // ===============================================
+        // 3. DISPLAY AND DOWNLOAD RESULTS
+        // ===============================================
+
+        /**
+         * Renders the calculated anomaly and normal data tables.
+         */
+        function renderResults() {
+            if (allData.length === 0) {
+                resultsContainer.classList.add('hidden');
+                metrics.classList.add('hidden');
+                downloadBtn.disabled = true;
+                return;
+            }
+
+            resultsContainer.classList.remove('hidden');
+            metrics.classList.remove('hidden');
+            
+            // Update metrics
+            document.getElementById('totalCount').textContent = allData.length;
+            document.getElementById('anomalyCount').textContent = anomalousData.length;
+            document.getElementById('normalCount').textContent = normalData.length;
+            document.getElementById('anomaliesBadge').textContent = anomalousData.length;
+            document.getElementById('normalBadge').textContent = normalData.length;
+            
+            downloadBtn.disabled = anomalousData.length === 0;
+
+            // Render Anomalous Table
+            renderTable(document.getElementById('anomalousTable'), anomalousData);
+            // Render Normal Table
+            renderTable(document.getElementById('normalTable'), normalData);
+        }
+
+        /**
+         * Generates the HTML table content.
+         * @param {HTMLElement} tableElement - The <table> element to populate.
+         * @param {object[]} data - The array of data objects.
+         */
+        function renderTable(tableElement, data) {
+            const thead = tableElement.querySelector('thead');
+            const tbody = tableElement.querySelector('tbody');
+
+            // Clear previous content
+            thead.innerHTML = '';
+            tbody.innerHTML = '';
+
+            // Render Header
+            if (headers.length > 0) {
+                const headerRow = document.createElement('tr');
+                headers.forEach(header => {
+                    const th = document.createElement('th');
+                    th.textContent = header;
+                    th.classList.add('whitespace-nowrap');
+                    headerRow.appendChild(th);
+                });
+                thead.appendChild(headerRow);
+            }
+
+            // Render Body
+            if (data.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = `<td colspan="${headers.length}" class="text-center text-gray-500 py-4">No data in this set.</td>`;
+                tbody.appendChild(emptyRow);
+                return;
+            }
+
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.classList.add('hover:bg-gray-50');
+                headers.forEach(header => {
+                    const td = document.createElement('td');
+                    td.textContent = row[header];
+                    // Highlight numeric outliers (optional: could add more complex logic here)
+                    if (typeof row[header] === 'number') {
+                         td.classList.add('font-mono', 'text-sm');
+                    }
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+        }
+        
+        /**
+         * Converts the anomalous data array back into a CSV string and triggers a download.
+         */
+        function downloadCSV() {
+            if (anomalousData.length === 0) {
+                showStatus('No anomalies to download.', true);
+                return;
+            }
+
+            // Create CSV content
+            let csvContent = headers.join(',') + '\n'; // Add headers
+            
+            anomalousData.forEach(row => {
+                const rowValues = headers.map(header => {
+                    let value = row[header];
+                    // Enclose strings with commas/quotes in quotes
+                    if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
+                        return `"${value.replace(/"/g, '""')}"`;
+                    }
+                    return value;
+                });
+                csvContent += rowValues.join(',') + '\n';
+            });
+
+            // Create a blob and trigger download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            
+            // Check for browser compatibility
+            if (navigator.msSaveBlob) { // IE 10+
+                navigator.msSaveBlob(blob, 'anomalies.csv');
+            } else {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', 'anomalies.csv');
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+
+        // ===============================================
+        // UTILITIES
+        // ===============================================
+
+        /**
+         * Displays a status message to the user.
+         * @param {string} message - The message to display.
+         * @param {boolean} isError - Whether the message is an error.
+         */
+        function showStatus(message, isError) {
+            statusMessage.textContent = message;
+            statusMessage.classList.toggle('text-red-600', isError);
+            statusMessage.classList.toggle('text-green-600', !isError);
+            statusMessage.classList.remove('hidden');
+        }
+
+        /**
+         * Resets the application state.
+         */
+        function resetApp() {
+            allData = [];
+            anomalousData = [];
+            normalData = [];
+            headers = [];
+            document.getElementById('csvFile').value = '';
+            analyzeBtn.disabled = true;
+            resultsContainer.classList.add('hidden');
+            metrics.classList.add('hidden');
+            downloadBtn.disabled = true;
+            document.getElementById('totalCount').textContent = '0';
+            document.getElementById('anomalyCount').textContent = '0';
+            document.getElementById('normalCount').textContent = '0';
+        }
+    </script>
+</body>
+</html>
